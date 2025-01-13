@@ -322,7 +322,7 @@ elif page == "Reference Guide":
     st.write("### Sample Images for All Defect Types")
     
     # Define reference image URL
-    image_url = "https://raw.githubusercontent.com/your-username/wafer-map/main/all.png"
+    image_url = "https://raw.githubusercontent.com/Qixuan1003/wafer-map/main/all.png"
     
     try:
         # Create a markdown image
