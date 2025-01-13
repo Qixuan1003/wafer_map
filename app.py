@@ -1,13 +1,14 @@
 import streamlit as st
 import tensorflow as tf
-import os
-import gdown
 import numpy as np
 from PIL import Image
 import time
 import matplotlib.pyplot as plt
 import io
 import zipfile
+import os
+import gdown
+import pandas as pd
 
 # Set page configuration
 st.set_page_config(
@@ -62,13 +63,11 @@ CLASS_MAPPING = {
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("Go to", ["Single Image Classifier", "Batch Processing", "Reference Guide", "Model Information"])
 
-import gdown
-
 @st.cache_resource
 def load_model():
     """Load and cache the model from Google Drive"""
     try:
-        # Google Drive file ID for your model
+        # Google Drive file ID
         file_id = "1Gv0tu4t1rfV2BrTFRqP0p50UZuFDq8Pz"
         output_path = "mobilenetv2_none.keras"
         
@@ -76,6 +75,10 @@ def load_model():
         if not os.path.exists(output_path):
             url = f'https://drive.google.com/uc?id={file_id}'
             gdown.download(url, output_path, quiet=False)
+            
+            if not os.path.exists(output_path):
+                st.error("Failed to download model file")
+                return None
         
         # Load the model
         model = tf.keras.models.load_model(output_path, compile=False)
@@ -147,12 +150,15 @@ def process_batch_images(model, images):
         except Exception as e:
             results.append({
                 'Image': img_name,
-                'Predicted Class': 'Error',
+                'Predicted Class': f'Error: {str(e)}',
                 'Confidence': 'N/A',
                 'Inference Time (ms)': 'N/A'
             })
             
     return results, total_time
+
+# Load the model at startup
+model = load_model()
 
 # Main application logic based on selected page
 if page == "Single Image Classifier":
@@ -170,9 +176,7 @@ if page == "Single Image Classifier":
             with col1:
                 st.write("#### Original Image")
                 image = Image.open(uploaded_file)
-                st.image(image, use_column_width=True)
-
-            model = load_model()
+                st.image(image, use_container_width=True)
 
             if model is not None:
                 # Make prediction
@@ -212,22 +216,23 @@ elif page == "Batch Processing":
         
         # Process uploaded files
         for uploaded_file in uploaded_files:
-            if uploaded_file.name.endswith('.zip'):
-                # Handle ZIP file
-                with zipfile.ZipFile(uploaded_file) as z:
-                    for filename in z.namelist():
-                        if filename.lower().endswith(('.png', '.jpg', '.jpeg')):
-                            with z.open(filename) as f:
-                                img_data = io.BytesIO(f.read())
-                                images_to_process.append((filename, Image.open(img_data)))
-            else:
-                # Handle individual image files
-                images_to_process.append((uploaded_file.name, Image.open(uploaded_file)))
+            try:
+                if uploaded_file.name.endswith('.zip'):
+                    # Handle ZIP file
+                    with zipfile.ZipFile(uploaded_file) as z:
+                        for filename in z.namelist():
+                            if filename.lower().endswith(('.png', '.jpg', '.jpeg')):
+                                with z.open(filename) as f:
+                                    img_data = io.BytesIO(f.read())
+                                    images_to_process.append((filename, Image.open(img_data)))
+                else:
+                    # Handle individual image files
+                    images_to_process.append((uploaded_file.name, Image.open(uploaded_file)))
+            except Exception as e:
+                st.error(f"Error processing {uploaded_file.name}: {str(e)}")
         
         if images_to_process:
             st.write(f"Processing {len(images_to_process)} images...")
-            
-            model = load_model("mobilenetv2_none.keras")
             
             if model is not None:
                 results, total_time = process_batch_images(model, images_to_process)
@@ -237,7 +242,6 @@ elif page == "Batch Processing":
                 st.write(f"Total processing time: {total_time:.1f} ms")
                 
                 # Create a DataFrame for better display
-                import pandas as pd
                 df = pd.DataFrame(results)
                 st.dataframe(df, use_container_width=True)
                 
