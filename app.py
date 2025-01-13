@@ -266,9 +266,6 @@ elif page == "Reference Guide":
     - 4 Mixed-type patterns (C35-C38)
     """)
 
-    # Add pattern descriptions
-    st.write("### Pattern Descriptions")
-
     # Group patterns by type
     single_type = {k: v for k, v in CLASS_MAPPING.items() if k in [f'C{i}' for i in range(1, 10)]}
     two_mixed = {k: v for k, v in CLASS_MAPPING.items() if k in [f'C{i}' for i in range(10, 23)]}
@@ -296,38 +293,8 @@ elif page == "Reference Guide":
             st.write(f"**{k}**: {v}")
             
     st.write("### Sample Images for All Defect Types")
-    
-    # Use the raw content URL from GitHub
     image_url = "https://raw.githubusercontent.com/Qixuan1003/wafer_map/main/all.png"
-    
-    try:
-        st.image(image_url, caption="Wafer Defect Pattern Examples showing all 38 pattern types", use_container_width=True)
-    except Exception as e:
-        st.error(f"Error loading reference image: {str(e)}")
-        st.info("""
-        Common wafer defect pattern characteristics:
-        - **Normal (C1)**: Uniform pattern with no defects
-        - **Center (C2)**: Defects concentrated in the center
-        - **Donut (D)**: Ring-shaped pattern of defects
-        - **Edge-Located (EL)**: Defects along one edge
-        - **Edge-Ring (ER)**: Defects around the perimeter
-        - **Localized (L)**: Clustered defects in specific areas
-        - **Near-Full (NF)**: Most of the wafer shows defects
-        - **Scratch (S)**: Linear pattern of defects
-        - **Random (R)**: Randomly distributed defects
-        
-        Mixed patterns (C10-C38) combine characteristics of these basic patterns.
-        """)
-            
-    st.write("### Sample Images for All Defect Types")
-    
-    # Define reference image URL
-    image_url = "https://raw.githubusercontent.com/Qixuan1003/wafer-map/main/all.png"
-    
-    try:
-        # Create a markdown image
-        st.markdown(f"![Wafer Defect Pattern Examples]({image_url})")
-        st.caption("Wafer Defect Pattern Examples showing all 38 pattern types")
+    st.image(image_url, caption="Wafer Defect Pattern Examples showing all 38 pattern types", use_container_width=True)
 
 elif page == "Model Information":
     st.title("📊 Model Information")
